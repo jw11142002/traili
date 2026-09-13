@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       // Photos are downscaled client-side before upload; Vercel caps request bodies at 4.5 MB.
       bodySizeLimit: "4mb",
-      allowedOrigins: ["traili.justinyjwang.com", "traili.vercel.app", "localhost:3000"],
+      allowedOrigins: ["traili.justinyjwang.com", "localhost:3000"],
     },
   },
   images: {

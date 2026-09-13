@@ -4,26 +4,21 @@ function canonicalOrigin() {
   return (process.env.APP_URL || "https://traili.justinyjwang.com").replace(/\/$/, "");
 }
 
-/** Production Vercel alias only — not preview URLs like traili-git-main-….vercel.app */
-function isProductionVercelAlias(host: string) {
-  return host === "traili.vercel.app";
-}
-
 export function middleware(req: NextRequest) {
+  if (process.env.VERCEL_ENV === "preview") return NextResponse.next();
   const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").split(",")[0].trim();
-  const dest = canonicalOrigin();
   let destHost = "";
+  const dest = canonicalOrigin();
   try {
     destHost = new URL(dest).host;
   } catch {
     return NextResponse.next();
   }
-  if (!host || host === destHost || host.includes("localhost")) return NextResponse.next();
-  if (isProductionVercelAlias(host)) {
-    const url = req.nextUrl.clone();
-    return NextResponse.redirect(`${dest}${url.pathname}${url.search}`, 308);
+  if (!host || host === destHost || host.includes("localhost") || host.startsWith("127.0.0.1")) {
+    return NextResponse.next();
   }
-  return NextResponse.next();
+  const url = req.nextUrl.clone();
+  return NextResponse.redirect(`${dest}${url.pathname}${url.search}`, 308);
 }
 
 export const config = {

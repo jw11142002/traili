@@ -3,7 +3,7 @@ import { Google } from "arctic";
 
 /** Static app URL from env (used where request headers aren't available). */
 export function appUrl() {
-  return (process.env.APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  return (process.env.APP_URL || "https://traili.justinyjwang.com").replace(/\/$/, "");
 }
 
 /**
