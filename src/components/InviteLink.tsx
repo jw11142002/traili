@@ -3,10 +3,16 @@
 import { useEffect, useState } from "react";
 import { Copy, Check, Share2 } from "lucide-react";
 
-function hrefOnThisHost(serverUrl: string) {
+function shareHref(serverUrl: string) {
   try {
-    const path = new URL(serverUrl, "https://local.invalid").pathname;
-    return `${window.location.origin}${path}`;
+    const parsed = new URL(serverUrl, window.location.origin);
+    const here = window.location.hostname;
+    // If the user is already on the custom domain, keep that origin. Otherwise keep
+    // the server URL (APP_URL / traili.justinyjwang.com) so copies don't go to vercel.app.
+    if (here === "traili.justinyjwang.com" || here.endsWith(".justinyjwang.com")) {
+      return `${window.location.origin}${parsed.pathname}`;
+    }
+    return parsed.href;
   } catch {
     return serverUrl;
   }
@@ -18,7 +24,7 @@ export default function InviteLink({ url, compact }: { url: string; compact?: bo
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
   useEffect(() => {
-    setHref(hrefOnThisHost(url));
+    setHref(shareHref(url));
   }, [url]);
 
   const copy = async () => {

@@ -11,7 +11,13 @@ export type AuthState = { error?: string } | undefined;
 
 export async function rememberInvite(code: string) {
   const jar = await cookies();
-  jar.set(INVITE_COOKIE, code, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 60 * 60 * 24 * 7 });
+  jar.set(INVITE_COOKIE, code, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
 }
 
 export async function signup(_prev: AuthState, formData: FormData): Promise<AuthState> {

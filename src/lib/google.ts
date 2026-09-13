@@ -7,10 +7,13 @@ export function appUrl() {
 }
 
 /**
- * Public URL the current request was served from. Share / invite links must match the
- * host the user is actually on (e.g. traili.vercel.app), not a future custom domain in APP_URL.
+ * Canonical public URL for invite / share links.
+ * Prefer APP_URL when it is a real domain (https://traili.justinyjwang.com); otherwise
+ * use the request host so local / preview deploys still produce working links.
  */
 export async function requestAppUrl() {
+  const env = process.env.APP_URL?.replace(/\/$/, "");
+  if (env && /^https:\/\//i.test(env) && !/localhost|127\.0\.0\.1/.test(env)) return env;
   try {
     const h = await headers();
     const host = (h.get("x-forwarded-host") ?? h.get("host"))?.split(",")[0]?.trim();
