@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { Camera, X } from "lucide-react";
 import { addPhotos, deletePhoto } from "@/lib/actions/photos";
+import { shrinkImage } from "@/lib/clientImage";
 import { Spinner } from "./ui";
 
 type Photo = { id: string; url: string };
@@ -15,18 +16,24 @@ export default function PhotoUploader({ visitId, initial = [], onChange }: { vis
 
   const upload = (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    const fd = new FormData();
-    fd.set("visitId", visitId);
-    Array.from(files).forEach((f) => fd.append("files", f));
+    const list = Array.from(files).slice(0, 8);
     setError(null);
     start(async () => {
-      const res = await addPhotos(fd);
-      if (res.error) setError(res.error);
-      if (res.photos) {
-        const next = [...photos, ...res.photos];
-        setPhotos(next);
-        onChange?.(next);
+      let next = photos;
+      let failed = 0;
+      // One request per photo: each is downscaled client-side and stays under serverless body limits.
+      for (const f of list) {
+        const fd = new FormData();
+        fd.set("visitId", visitId);
+        fd.append("files", await shrinkImage(f));
+        const res = await addPhotos(fd);
+        if (res.photos?.length) {
+          next = [...next, ...res.photos];
+          setPhotos(next);
+          onChange?.(next);
+        } else failed++;
       }
+      if (failed) setError(failed === list.length ? "Couldn't upload that photo. Try a smaller one." : `${failed} photo${failed > 1 ? "s" : ""} couldn't be uploaded.`);
       if (inputRef.current) inputRef.current.value = "";
     });
   };

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Check, Camera, Scale, ListOrdered, Users } from "lucide-react";
 import { checkUsername, completeOnboarding, updateProfile } from "@/lib/actions/profile";
 import { addPhotos } from "@/lib/actions/photos";
+import { shrinkImage } from "@/lib/clientImage";
 import { TASTES, COMFORT } from "@/lib/constants";
 import type { PlaceResult } from "@/lib/trails";
 import PlacePicker from "./PlacePicker";
@@ -137,10 +138,11 @@ export default function Onboarding({ user, suggestedUsername, inviteUrl, friendC
 
   const uploadAvatar = (files: FileList | null) => {
     if (!files?.[0]) return;
-    const fd = new FormData();
-    fd.set("kind", "avatar");
-    fd.append("files", files[0]);
+    const file = files[0];
     start(async () => {
+      const fd = new FormData();
+      fd.set("kind", "avatar");
+      fd.append("files", await shrinkImage(file, 1000));
       const r = await addPhotos(fd);
       if (r.photos?.[0]) setAvatar(r.photos[0].url);
     });

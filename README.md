@@ -11,35 +11,57 @@ Beli for trails. A friends-only hiking journal where you **rank** every hike you
 
 ## Stack
 
-Next.js 15 (App Router, server actions) · React 19 · Tailwind CSS v4 · Prisma 6 + SQLite · sharp (photo processing) · arctic (Google OAuth) · dnd-kit.
+Next.js 15 (App Router, server actions) · React 19 · Tailwind CSS v4 · Prisma 6 + **Supabase Postgres** · **Supabase Storage** for photos · sharp · arctic (Google OAuth) · dnd-kit. Hosted on **Vercel**.
+
+## Deploy (Vercel + Supabase, both free tiers)
+
+### 1. Supabase
+1. <https://supabase.com/dashboard> → **New project** (name `traili`, region *West US (Oregon)*, save the database password).
+2. **Connect** (top bar) → **ORMs → Prisma**. Copy the two URLs:
+   - `DATABASE_URL` — *Transaction pooler*, port **6543**, append `?pgbouncer=true&connection_limit=1`
+   - `DIRECT_URL` — *Session pooler*, port **5432**
+3. **Project Settings → API**: copy **Project URL** (`SUPABASE_URL`) and the **service_role** key (`SUPABASE_SERVICE_ROLE_KEY`).
+   The `photos` storage bucket is created automatically on first upload.
+
+### 2. Vercel
+1. <https://vercel.com/new> → import the GitHub repo `jw11142002/traili`. Framework is detected as Next.js; the build command comes from `vercel.json` (`npm run vercel-build`, which also applies the Prisma schema).
+2. **Environment Variables** — add:
+
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | pooler URL, port 6543, with `?pgbouncer=true&connection_limit=1` |
+   | `DIRECT_URL` | pooler URL, port 5432 |
+   | `SUPABASE_URL` | `https://<ref>.supabase.co` |
+   | `SUPABASE_SERVICE_ROLE_KEY` | service role key |
+   | `APP_URL` | `https://traili.justinyjwang.com` |
+
+3. **Deploy**. First build creates all tables.
+4. **Project → Settings → Domains** → add `traili.justinyjwang.com`. Vercel shows the CNAME target (`cname.vercel-dns.com`).
+
+### 3. Namecheap DNS
+Domain List → **Manage** → **Advanced DNS** → Add record:
+
+| Type | Host | Value | TTL |
+|---|---|---|---|
+| CNAME | `traili` | `cname.vercel-dns.com.` | Automatic |
+
+Propagation is usually minutes; Vercel issues the TLS certificate automatically.
+
+### 4. Optional — Google sign-in
+Create an OAuth client at <https://console.cloud.google.com/apis/credentials> with redirect URI `https://traili.justinyjwang.com/api/auth/google/callback`, then add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in Vercel and redeploy. The button appears automatically.
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env          # defaults work out of the box
-npx prisma db push            # creates data/traili.db
-npm run dev                   # http://localhost:3000
+cp .env.example .env     # fill in the Supabase values (a second free project works well for dev)
+npx prisma db push
+npm run dev              # http://localhost:3000
 ```
 
-## Public URL (current setup)
+Without `SUPABASE_URL` set, photos are written to `UPLOAD_DIR` on disk instead.
 
-The app is served from this machine and exposed through a Cloudflare quick tunnel:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\start-public.ps1   # builds nothing; run `npm run build` first
-powershell -ExecutionPolicy Bypass -File scripts\stop-public.ps1
-```
-
-The script writes the public URL to `data/public-url.txt`. Quick tunnels get a new `*.trycloudflare.com` hostname each time they start; invite links are generated from the request host so they always match.
-
-## Permanent hosting
-
-The included `Dockerfile` runs anywhere Docker does (Fly.io, Railway, Render, a VPS). Mount a persistent volume at `/app/data` — it holds the SQLite database and uploaded photos. Set `APP_URL` to your domain.
-
-## Google sign-in (optional)
-
-Create an OAuth client at <https://console.cloud.google.com/apis/credentials> with the redirect URI `https://<your-domain>/api/auth/google/callback`, then set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`. The "Continue with Google" button appears automatically once both are set. (It needs a stable domain — quick-tunnel hostnames change.)
+`scripts/start-public.ps1` / `stop-public.ps1` run a production build on this machine behind a Cloudflare quick tunnel (temporary URL) — handy for testing, superseded by Vercel. A `Dockerfile` is also included for any container host.
 
 ## Data sources
 

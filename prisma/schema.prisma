@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (Supabase transaction pooler, port 6543) used at runtime.
+  url       = env("DATABASE_URL")
+  // Direct / session-pooler connection (port 5432) used by `prisma db push`.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

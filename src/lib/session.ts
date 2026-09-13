@@ -15,7 +15,7 @@ export async function createSession(userId: string) {
   jar.set(SESSION_COOKIE, id, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production" && (process.env.APP_URL ?? "").startsWith("https"),
+    secure: process.env.NODE_ENV === "production" && (Boolean(process.env.VERCEL) || (process.env.APP_URL ?? "").startsWith("https")),
     path: "/",
     expires: expiresAt,
   });

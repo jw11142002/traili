@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Camera, Check } from "lucide-react";
 import { checkUsername, updateProfile } from "@/lib/actions/profile";
 import { addPhotos } from "@/lib/actions/photos";
+import { shrinkImage } from "@/lib/clientImage";
 import { deleteAccount, logout } from "@/lib/actions/auth";
 import { TASTES, COMFORT } from "@/lib/constants";
 import type { PlaceResult } from "@/lib/trails";
@@ -74,10 +75,10 @@ export default function SettingsForm({ user }: Props) {
           onChange={(e) => {
             const f = e.target.files?.[0];
             if (!f) return;
-            const fd = new FormData();
-            fd.set("kind", "avatar");
-            fd.append("files", f);
             start(async () => {
+              const fd = new FormData();
+              fd.set("kind", "avatar");
+              fd.append("files", await shrinkImage(f, 1000));
               const r = await addPhotos(fd);
               if (r.photos?.[0]) setAvatar(r.photos[0].url);
               router.refresh();

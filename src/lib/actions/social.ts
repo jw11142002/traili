@@ -24,7 +24,11 @@ export async function searchUsers(q: string): Promise<UserCard[]> {
     where: {
       id: { not: me.id },
       onboardedAt: { not: null },
-      OR: [{ username: { contains: query } }, { name: { contains: query } }, { email: query.toLowerCase() }],
+      OR: [
+        { username: { contains: query, mode: "insensitive" } },
+        { name: { contains: query, mode: "insensitive" } },
+        { email: query.toLowerCase() },
+      ],
     },
     take: 12,
     include: { _count: { select: { ranks: true } } },
