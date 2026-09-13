@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String?
+  googleId     String?   @unique
+  name         String
+  username     String?   @unique
+  bio          String?
+  avatarUrl    String?
+  homePlace    String?
+  homeLat      Float?
+  homeLng      Float?
+  tastes       String? // JSON string[]
+  comfort      String? // short | medium | long | epic
+  onboardedAt  DateTime?
+  inviteCode   String    @unique @default(cuid())
+  createdAt    DateTime  @default(now())
+
+  sessions         Session[]
+  visits           Visit[]
+  ranks            UserTrailRank[]
+  wants            Want[]
+  activities       Activity[]
+  photos           Photo[]
+  sentRequests     Friendship[] @relation("Requester")
+  receivedRequests Friendship[] @relation("Addressee")
+  createdTrails    Trail[]
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Trail {
+  id             String   @id @default(cuid())
+  name           String
+  source         String // osm | manual
+  osmType        String? // node | way | relation
+  osmId          String?
+  kind           String? // trail | route | peak | park | lake | waterfall | viewpoint | place
+  region         String?
+  country        String?
+  countryCode    String?
+  lat            Float
+  lng            Float
+  distanceKm     Float?
+  elevationGainM Float?
+  difficulty     String? // easy | moderate | hard
+  routeType      String? // loop | out-and-back | point-to-point
+  description    String?
+  createdById    String?
+  createdBy      User?    @relation(fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+
+  visits     Visit[]
+  ranks      UserTrailRank[]
+  wants      Want[]
+  activities Activity[]
+  photos     Photo[]
+
+  @@unique([osmType, osmId])
+  @@index([name])
+}
+
+model Visit {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trailId     String
+  trail       Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  date        DateTime
+  notes       String?
+  conditions  String? // JSON string[]
+  companions  String? // JSON string[]
+  crowd       String? // empty | light | busy | packed
+  effort      String? // easy | moderate | hard
+  wouldRepeat String? // yes | seasonal | once
+  createdAt   DateTime @default(now())
+
+  photos     Photo[]
+  activities Activity[]
+
+  @@index([userId, date])
+  @@index([trailId])
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  file      String
+  width     Int
+  height    Int
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trailId   String?
+  trail     Trail?   @relation(fields: [trailId], references: [id], onDelete: SetNull)
+  visitId   String?
+  visit     Visit?   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([trailId])
+  @@index([visitId])
+}
+
+model UserTrailRank {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trailId   String
+  trail     Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  bucket    String // liked | fine | disliked
+  score     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, trailId])
+  @@index([userId, score])
+}
+
+model Want {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trailId   String
+  trail     Trail    @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, trailId])
+}
+
+model Friendship {
+  id          String   @id @default(cuid())
+  requesterId String
+  requester   User     @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addresseeId String
+  addressee   User     @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  status      String // pending | accepted
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+}
+
+model Activity {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String // ranked | revisited | wanted | joined
+  trailId   String?
+  trail     Trail?   @relation(fields: [trailId], references: [id], onDelete: Cascade)
+  visitId   String?
+  visit     Visit?   @relation(fields: [visitId], references: [id], onDelete: Cascade)
+  meta      String? // JSON
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}

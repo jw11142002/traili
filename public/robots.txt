@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /home
+Disallow: /lists
+Disallow: /log
+Disallow: /friends
+Disallow: /settings
+Disallow: /api/
+Allow: /

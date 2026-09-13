@@ -1,0 +1,160 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Moss: primary green (muted, not neon; distinct from AllTrails' bright green) */
+  --color-moss-50: #f2f6f2;
+  --color-moss-100: #e3ebe4;
+  --color-moss-200: #c6d7c9;
+  --color-moss-300: #a0bca6;
+  --color-moss-400: #71997c;
+  --color-moss-500: #4f7b5d;
+  --color-moss-600: #3f6b4f;
+  --color-moss-700: #34573f;
+  --color-moss-800: #2a4532;
+  --color-moss-900: #1f3325;
+
+  /* Warm neutrals */
+  --color-stone-25: #faf9f6;
+  --color-stone-50: #f6f5f0;
+  --color-stone-100: #eeece5;
+  --color-stone-200: #e2dfd5;
+  --color-stone-300: #cfcbbe;
+  --color-stone-400: #a9a597;
+  --color-stone-500: #7f7b6f;
+  --color-stone-600: #5f5c52;
+  --color-stone-700: #46443c;
+  --color-stone-800: #2e2d27;
+  --color-stone-900: #1e1d19;
+
+  /* Accents */
+  --color-clay-500: #c2714f;
+  --color-clay-600: #a85f40;
+  --color-amber-500: #c9a24b;
+  --color-amber-600: #a98536;
+  --color-rust-500: #b5573f;
+  --color-rust-600: #964834;
+
+  --color-ink: #1e241f;
+  --color-muted: #6b7069;
+  --color-line: #e7e4dc;
+  --color-canvas: #f8f7f3;
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  --shadow-soft: 0 1px 2px rgba(30, 36, 31, 0.05), 0 4px 16px rgba(30, 36, 31, 0.06);
+  --shadow-lift: 0 2px 6px rgba(30, 36, 31, 0.08), 0 12px 32px rgba(30, 36, 31, 0.1);
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+input,
+textarea,
+select,
+button {
+  font: inherit;
+}
+
+::selection {
+  background: var(--color-moss-200);
+}
+
+/* Safe-area helpers for iOS home indicator */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.04);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.animate-pop {
+  animation: pop 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Component primitives */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed select-none;
+}
+@utility btn-primary {
+  @apply btn bg-moss-600 text-white hover:bg-moss-700 active:bg-moss-800;
+}
+@utility btn-secondary {
+  @apply btn bg-white text-ink border border-line hover:bg-stone-50 active:bg-stone-100;
+}
+@utility btn-ghost {
+  @apply btn bg-transparent text-moss-700 hover:bg-moss-50;
+}
+@utility btn-lg {
+  @apply px-5 py-3.5 text-base rounded-2xl;
+}
+
+@utility input {
+  @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-[15px] text-ink placeholder:text-stone-400 outline-none focus:border-moss-500 focus:ring-2 focus:ring-moss-100;
+}
+
+@utility card {
+  @apply rounded-2xl bg-white border border-line;
+}
+
+@utility chip {
+  @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-colors select-none;
+}
+@utility chip-off {
+  @apply chip border-line bg-white text-stone-700 hover:bg-stone-50;
+}
+@utility chip-on {
+  @apply chip border-moss-600 bg-moss-600 text-white;
+}
+
+@utility label {
+  @apply block text-xs font-semibold uppercase tracking-wide text-muted mb-1.5;
+}
