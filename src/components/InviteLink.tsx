@@ -1,25 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, Check, Share2 } from "lucide-react";
 
+function hrefOnThisHost(serverUrl: string) {
+  try {
+    const path = new URL(serverUrl, "https://local.invalid").pathname;
+    return `${window.location.origin}${path}`;
+  } catch {
+    return serverUrl;
+  }
+}
+
 export default function InviteLink({ url, compact }: { url: string; compact?: boolean }) {
+  const [href, setHref] = useState(url);
   const [copied, setCopied] = useState(false);
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
 
+  useEffect(() => {
+    setHref(hrefOnThisHost(url));
+  }, [url]);
+
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(href);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      prompt("Copy your invite link", url);
+      prompt("Copy your invite link", href);
     }
   };
 
   const share = async () => {
     try {
-      await navigator.share({ title: "Join me on traili", text: "Rank your hikes with me on traili", url });
+      await navigator.share({ title: "Join me on traili", text: "Rank your hikes with me on traili", url: href });
     } catch {
       /* cancelled */
     }
@@ -31,7 +45,7 @@ export default function InviteLink({ url, compact }: { url: string; compact?: bo
         <>
           <div className="font-semibold mb-1">Your invite link</div>
           <p className="text-sm text-muted mb-3">Anyone who joins through it becomes your friend automatically.</p>
-          <div className="rounded-xl bg-stone-50 border border-line px-3 py-2 text-sm text-stone-600 truncate mb-3 font-mono">{url}</div>
+          <div className="rounded-xl bg-stone-50 border border-line px-3 py-2 text-sm text-stone-600 truncate mb-3 font-mono">{href}</div>
         </>
       )}
       <div className="flex gap-2">

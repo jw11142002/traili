@@ -7,17 +7,15 @@ export function appUrl() {
 }
 
 /**
- * Public URL the current request was served from. Prefers APP_URL when it is set to a real
- * domain; otherwise derives it from the request (works behind tunnels / reverse proxies).
+ * Public URL the current request was served from. Share / invite links must match the
+ * host the user is actually on (e.g. traili.vercel.app), not a future custom domain in APP_URL.
  */
 export async function requestAppUrl() {
-  const env = process.env.APP_URL?.replace(/\/$/, "");
-  if (env && !/localhost|127\.0\.0\.1/.test(env)) return env;
   try {
     const h = await headers();
-    const host = h.get("x-forwarded-host") ?? h.get("host");
+    const host = (h.get("x-forwarded-host") ?? h.get("host"))?.split(",")[0]?.trim();
     if (host) {
-      const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+      const proto = h.get("x-forwarded-proto")?.split(",")[0]?.trim() ?? (host.includes("localhost") ? "http" : "https");
       return `${proto}://${host}`;
     }
   } catch {
@@ -27,7 +25,8 @@ export async function requestAppUrl() {
 }
 
 export function googleEnabled() {
-  return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+  // Email/password only for now. Flip this back on once Google OAuth is configured.
+  return false;
 }
 
 export function googleClient(base: string) {
