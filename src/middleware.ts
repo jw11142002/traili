@@ -5,9 +5,7 @@ function canonicalOrigin() {
 }
 
 /** Production Vercel alias only — not preview URLs like traili-git-main-….vercel.app */
-function isProductionVercelHost(host: string) {
-  const prod = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  if (prod) return host === prod;
+function isProductionVercelAlias(host: string) {
   return host === "traili.vercel.app";
 }
 
@@ -21,7 +19,7 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
   if (!host || host === destHost || host.includes("localhost")) return NextResponse.next();
-  if (process.env.VERCEL_ENV === "production" && isProductionVercelHost(host)) {
+  if (isProductionVercelAlias(host)) {
     const url = req.nextUrl.clone();
     return NextResponse.redirect(`${dest}${url.pathname}${url.search}`, 308);
   }
